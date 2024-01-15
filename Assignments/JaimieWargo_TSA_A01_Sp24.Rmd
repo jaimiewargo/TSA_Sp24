@@ -1,8 +1,10 @@
 ---
 title: "ENV 790.30 - Time Series Analysis for Energy Data | Spring 2024"
-subtitle: "Assignment 1 - Due date 01/18/24"
 author: "Jaimie Wargo"
-output: pdf_document
+subtitle: "Assignment 1 - Due date 01/18/24"
+output:
+  pdf_document: default
+  word_document: default
 geometry: margin=2.54cm
 ---
 
@@ -28,4 +30,6 @@ Q3. For this part we just want to see the path to your R project. No need to do 
 
 > Answer: This is my working directory:
 
-\`\`\`{r} getwd() \`\`\`\`
+```{r}
+getwd()
+```
