@@ -10,10 +10,9 @@ editor_options:
 
 The first R code chunk is named **setup**. Here we are setting the options for R code chunks. The choice echo=TRUE means both code and output will appear on report. If for a specific chunk you want different options, you can always change that on the first line as we did in the following chunk. We chose include=FALSE which means that nothing related to this chunk (code and output) will appear on the knitted file.
 
-```{r setup, include=FALSE} 
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE) 
 ```
-
 
 ## Loading packages and initializing
 
@@ -30,10 +29,10 @@ library(forecast) #added for Acf and Pacf functions
 
 For this first example we will import water inflow data for reservoirs in Brazil. We have data for 15 different reservoirs spread all over the country. To import a .txt, .csv or .xlsx file you can use the function *read.table()*. This function will store the data as a data frame and has useful inputs such as
 
-* *file = * : use this input to point to yoru data file. If it's on the same folder as your .Rmd then you only need to write the file name. But if it's on another folder you need to point to the path were file is located;
-* *header =* : if your file has a header you should set this to TRUE, o.w. FALSE;
-* *skip =* : if your file has rows explaining the data or any other rows on the top that need to be skipped you should just set skip to be equal to the number of row that should be skipped before reading the data. Mote that if header=TRUE, you should not skip the row with the header. The default is *skip=0*;
-* *dec =* : define *dec="."* or *dec=","* depending on how it's defined on your set. The default is ".".
+-   *file =* : use this input to point to yoru data file. If it's on the same folder as your .Rmd then you only need to write the file name. But if it's on another folder you need to point to the path were file is located;
+-   *header =* : if your file has a header you should set this to TRUE, o.w. FALSE;
+-   *skip =* : if your file has rows explaining the data or any other rows on the top that need to be skipped you should just set skip to be equal to the number of row that should be skipped before reading the data. Mote that if header=TRUE, you should not skip the row with the header. The default is *skip=0*;
+-   *dec =* : define *dec="."* or *dec=","* depending on how it's defined on your set. The default is ".".
 
 ```{r}
 #Importing time series data from text file
@@ -84,18 +83,18 @@ head(inflow_data)
 
 ## Initial plots
 
-A plot of observed values over time is the first thing you do to start understanding the data set. The default packages on R offer the function *plot()*. But we can generate improved plots using another package *ggplot2*. Package ggplot2 offers better looking plots, additional functionalities, easy incorporation of the date labels, legends, etc.  
+A plot of observed values over time is the first thing you do to start understanding the data set. The default packages on R offer the function *plot()*. But we can generate improved plots using another package *ggplot2*. Package ggplot2 offers better looking plots, additional functionalities, easy incorporation of the date labels, legends, etc.
 
 ```{r}
 #using package ggplot2
-ggplot()
+ggplot(data=inflow_data, aes(x=my_date, y=HP1))+
+  geom_line(color='darkseagreen')
 
 #adding two time series to the same plot
 
 ```
 
 In this course we will also use *autoplot()* which is a ggplot() for time series object. But then we will need to convert our inflow data frame to a *ts* object first.
-
 
 ## Transforming data into time series object
 
@@ -120,10 +119,9 @@ autoplot(ts_inflow_data) +
   
 ```
 
-
 ## Plotting ACF and PACF
 
-There are multiple ways to get acf and pacf plots in R. The default package "stats" have the functions acf() and pacf(). Another option is with the functions Acf() and Pacf() from package "forecast". Package forecast is not a default package. So you need to install and load it on the beginning of your scripts. 
+There are multiple ways to get acf and pacf plots in R. The default package "stats" have the functions acf() and pacf(). Another option is with the functions Acf() and Pacf() from package "forecast". Package forecast is not a default package. So you need to install and load it on the beginning of your scripts.
 
 ```{r acf}
 # Option 1: The function acf() and pacf() is from package "stats"
@@ -139,4 +137,3 @@ HP1_acf=
 HP1_pacf=
   
 ```
-
