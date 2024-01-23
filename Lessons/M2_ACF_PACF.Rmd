@@ -128,15 +128,15 @@ There are multiple ways to get acf and pacf plots in R. The default package "sta
 
 ```{r acf}
 # Option 1: The function acf() and pacf() is from package "stats"
-HP1_acf=
+HP1_acf=acf(ts_inflow_data)
 
-HP1_pacf=
+HP1_pacf=pacf(ts_inflow_data)
 
 #Option 2: Computing ACF and PACF with package "forecast"
 
 #The next line will output a plot since we have plot=TRUE and also store the acf values in the object
-HP1_acf=
+HP1_acf=Acf(ts_inflow_data)
 
-HP1_pacf=
+HP1_pacf=Pacf(ts_inflow_data)
   
 ```
