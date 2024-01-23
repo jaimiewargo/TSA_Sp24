@@ -91,7 +91,10 @@ ggplot(data=inflow_data, aes(x=my_date, y=HP1))+
   geom_line(color='darkseagreen')
 
 #adding two time series to the same plot
-
+ggplot(data=inflow_data, aes(x=my_date))+
+  geom_line(aes(y=HP1), color='darkseagreen')+
+  geom_line(aes(y=HP2), color='steelblue3')+
+  labs(y=expression(paste("Inflow (", m^{3}, '/s)')))
 ```
 
 In this course we will also use *autoplot()* which is a ggplot() for time series object. But then we will need to convert our inflow data frame to a *ts* object first.
@@ -101,7 +104,7 @@ In this course we will also use *autoplot()* which is a ggplot() for time series
 Many of the functions we will use require a time series object. You can transform your data in a time series using the function *ts()*. Only the columns with reservoir inflow data should be transformed, not the ones with month and year. Your ts object is not a data frame, but like I said we will need it as a ts for some function we will explore in future scripts.
 
 ```{r}
-ts_inflow_data <- #####
+ts_inflow_data <- ts(inflow_data$HP1, start=c(1931,1), frequency = 12)
 ts_inflow_data
 
 ```
