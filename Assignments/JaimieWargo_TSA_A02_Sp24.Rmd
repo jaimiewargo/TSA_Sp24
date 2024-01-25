@@ -38,10 +38,14 @@ Consider the data provided in the spreadsheet "Table_10.1_Renewable_Energy_Produ
 
 ```{r}
 #Importing data set
-raw_data <- read_excel(path=here('Data', 'Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx'),skip = 12, sheet="Monthly Data",col_names=FALSE) 
+raw_data <- read_excel(path=here('Data', 
+          'Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx'),
+          skip = 12, sheet="Monthly Data",col_names=FALSE) 
 
 #Now let's extract the column names from row 11
-read_col_names <- read_excel(path=here('Data', 'Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx'),skip = 10,n_max = 1, sheet="Monthly Data",col_names=FALSE) 
+read_col_names <- read_excel(path=here('Data', 
+          'Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx'),
+            skip = 10,n_max = 1, sheet="Monthly Data",col_names=FALSE) 
 
 colnames(raw_data) <- read_col_names
 head(raw_data)
@@ -52,7 +56,9 @@ head(raw_data)
 You will work only with the following columns: Total Biomass Energy Production, Total Renewable Energy Production, Hydroelectric Power Consumption. Create a data frame structure with these three time series only. Use the command head() to verify your data.
 
 ```{r}
-energy_df <- raw_data[,c('Month', 'Total Biomass Energy Consumption', 'Total Renewable Energy Consumption', 'Hydroelectric Power Consumption')]
+energy_df <- raw_data[,c('Month', 'Total Biomass Energy Consumption', 
+                         'Total Renewable Energy Consumption', 
+                         'Hydroelectric Power Consumption')]
 head(energy_df)
 ```
 
@@ -70,14 +76,17 @@ head(energy_ts)
 Compute mean and standard deviation for these three series.
 
 ```{r}
-paste("Biomass - mean: ", round(mean(energy_ts[,1]),2), " std. dev: ", round(sd(energy_ts[,1]),2))
 biomass_mean <- mean(energy_ts[,1])
+paste("Biomass - mean: ", round(biomass_mean,2), 
+      " std. dev: ", round(sd(energy_ts[,1]),2))
 
-paste("Total Renewable Energy - mean: ", round(mean(energy_ts[,2]),2), " std. dev: ", round(sd(energy_ts[,2]),2))
 totalrenew_mean <- mean(energy_ts[,2])
+paste("Total Renewable Energy - mean: ", round(totalrenew_mean,2), 
+      " std. dev: ", round(sd(energy_ts[,2]),2))
 
-paste("Hydroelectric - mean: ", round(mean(energy_ts[,3]),2), " std. dev: ", round(sd(energy_ts[,3]),2))
 hydro_mean <- mean(energy_ts[,3])
+paste("Hydroelectric - mean: ", round(hydro_mean,2), 
+      " std. dev: ", round(sd(energy_ts[,3]),2))
 ```
 
 ## Question 4
@@ -91,21 +100,24 @@ colnames(energy_df) <- nospace_colnames
 ggplot(data=energy_df, aes(x=date, y=biomass))+
   geom_line(color='darkseagreen')+
   geom_hline(yintercept = biomass_mean, color='darkgreen')+
-  labs(x='Date', y='Biomass (Trillion Btu)', title='Biomass Energy over time', subtitle = '1973-2023')
+  labs(x='Date', y='Biomass (Trillion Btu)', 
+       title='Biomass Energy over time', subtitle = '1973-2023')
 ```
 
 ```{r}
 ggplot(data=energy_df, aes(x=date, y=total_renew))+
   geom_line(color='steelblue3')+
   geom_hline(yintercept = totalrenew_mean, color='navy')+
-  labs(x='Date', y='Total Renewable Energy (Trillion Btu)', title='Total Renewable Energy over time', subtitle = '1973-2023')
+  labs(x='Date', y='Total Renewable Energy (Trillion Btu)', 
+       title='Total Renewable Energy over time', subtitle = '1973-2023')
 ```
 
 ```{r}
 ggplot(data=energy_df, aes(x=date, y=hydro))+
   geom_line(color='plum4')+
   geom_hline(yintercept = hydro_mean, color='purple4')+
-  labs(x='Date', y='Hydroelectric (Trillion Btu)', title='Hydroelectric Energy over time', subtitle = '1973-2023')  
+  labs(x='Date', y='Hydroelectric (Trillion Btu)', 
+       title='Hydroelectric Energy over time', subtitle = '1973-2023')  
 ```
 
 ## Question 5
