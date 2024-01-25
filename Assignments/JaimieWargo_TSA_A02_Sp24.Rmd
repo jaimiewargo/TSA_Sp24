@@ -113,7 +113,9 @@ ggplot(data=energy_df, aes(x=date, y=hydro))+
 Compute the correlation between these three series. Are they significantly correlated? Explain your answer.
 
 ```{r}
-
+paste("Biomass and Total Renewable:", round(cor(energy_ts[,1], energy_ts[,2]),3))
+paste("Biomass and Hydro:", round(cor(energy_ts[,2], energy_ts[,3]),3))
+paste("Hydro and Total Renewable:", round(cor(energy_ts[,1], energy_ts[,3]),3))
 ```
 
 ## Question 6
@@ -121,7 +123,9 @@ Compute the correlation between these three series. Are they significantly corre
 Compute the autocorrelation function from lag 1 up to lag 40 for these three variables. What can you say about these plots? Do the three of them have the same behavior?
 
 ```{r}
-
+Acf(energy_ts[,1], lag.max=40, main="Biomass TS ACF")
+Acf(energy_ts[,2], lag.max=40, main="Total Renewable TS ACF")
+Acf(energy_ts[,1], lag.max=40, main="Hydroelectric TS ACF")
 ```
 
 ## Question 7
@@ -129,5 +133,7 @@ Compute the autocorrelation function from lag 1 up to lag 40 for these three var
 Compute the partial autocorrelation function from lag 1 to lag 40 for these three variables. How these plots differ from the ones in Q6?
 
 ```{r}
-
+Pacf(energy_ts[,1], lag.max=40, main="Biomass TS PACF")
+Pacf(energy_ts[,2], lag.max=40, main="Total Renewable TS PACF")
+Pacf(energy_ts[,1], lag.max=40, main="Hydroelectric TS PACF")
 ```
