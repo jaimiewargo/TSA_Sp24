@@ -118,6 +118,8 @@ paste("Biomass and Hydro:", round(cor(energy_ts[,2], energy_ts[,3]),3))
 paste("Hydro and Total Renewable:", round(cor(energy_ts[,1], energy_ts[,3]),3))
 ```
 
+Answer: The biomass and total renewable energy series are strongly correlated, with an R2 value of 0.967. Hydroelectric power is not strongly correlated to biomass or renewable energy, with R2 values of 0 and -0.098 respectively. This makes sense because hydroelectric power consumption is more dependent on seasonality and resource availability and is less representative of the general increase in renewable energy over time.
+
 ## Question 6
 
 Compute the autocorrelation function from lag 1 up to lag 40 for these three variables. What can you say about these plots? Do the three of them have the same behavior?
@@ -128,6 +130,8 @@ Acf(energy_ts[,2], lag.max=40, main="Total Renewable TS ACF")
 Acf(energy_ts[,1], lag.max=40, main="Hydroelectric TS ACF")
 ```
 
+They do have the same behavior, as all of these plots show high autocorrelation through lag 40, although there is a slight decrease in ACF over time. This indicates that these observations are dependent on the intermediate observations, and a PACF plot would be helpful to eliminate this dependency.
+
 ## Question 7
 
 Compute the partial autocorrelation function from lag 1 to lag 40 for these three variables. How these plots differ from the ones in Q6?
@@ -137,3 +141,5 @@ Pacf(energy_ts[,1], lag.max=40, main="Biomass TS PACF")
 Pacf(energy_ts[,2], lag.max=40, main="Total Renewable TS PACF")
 Pacf(energy_ts[,1], lag.max=40, main="Hydroelectric TS PACF")
 ```
+
+These plots are much different because they remove the intermediate variable dependency, so now there are high PACF values only at lag 1, with points for consideration at lag 2, 12, and 13. This is different from the plots in Q6 because they do not all remain high.
