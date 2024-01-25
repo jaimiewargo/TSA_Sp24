@@ -72,11 +72,13 @@ Initial time series plot.
 #using package ggplot2
 for(i in 1:nhydro){
   print(ggplot(inflow_data, aes(x=my_date, y=inflow_data[,(1+i)])) +
-            geom_line(color="blue") +
+            geom_line(color="darkblue") +
             ylab(paste0("Inflow ",colnames(inflow_data)[(1+i)],sep="")) 
         )
 }
 
+#Have to use print function to see ggplot with for loop
+#1+i is to access the column for each hydropower plant, first column is the date
 ```
 
 ## Zeros in the end on data 
