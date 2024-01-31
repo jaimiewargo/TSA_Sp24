@@ -12,7 +12,7 @@ editor_options:
 
 You should open the .rmd file corresponding to this assignment on RStudio. The file is available on our class repository on Github.
 
-Once you have the file open on your local machine the first thing you will do is rename the file such that it includes your first and last name (e.g., "LuanaLima_TSA_A02_Sp24.Rmd"). Then change "Student Name" on line 4 with your name.
+Once you have the file open on your local machine the first thing you will do is rename the file such that it includes your first and last name (e.g., "LuanaLima_TSA_A03_Sp24.Rmd"). Then change "Student Name" on line 4 with your name.
 
 Then you will start working through the assignment by **creating code and output** that answer each question. Be sure to use this assignment document. Your report should contain the answer to each question and any plots/tables you obtained (when applicable).
 
@@ -28,18 +28,90 @@ When you have completed the assignment, **Knit** the text and code into a single
 
 Consider the same data you used for A2 from the spreadsheet "Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx". The data comes from the US Energy Information and Administration and corresponds to the December 2022 **Monthly** Energy Review. Once again you will work only with the following columns: Total Biomass Energy Production, Total Renewable Energy Production, Hydroelectric Power Consumption. Create a data frame structure with these three time series only.
 
-R packages needed for this assignment:"forecast","tseries", and "Kendall". Install these packages, if you haven't done yet. Do not forget to load them before running your script, since they are NOT default packages.\\
+R packages needed for this assignment:"forecast","tseries", and "Kendall". Install these packages, if you haven't done yet. Do not forget to load them before running your script, since they are NOT default packages.
 
-```{r}
+```{r Packages}
 #Load/install required package here
-
+library(forecast)
+library(tseries)
+library(Kendall)
+library(tidyverse)
+library(here)
+library(cowplot)
+library(readxl)
 ```
 
-##Trend Component
+## Trend Component
 
 ### Q1
 
-For each time series, i.e., Renewable Energy Production and Hydroelectric Consumption create three plots: one with time series, one with the ACF and with the PACF. You may use the some code form A2, but I want all the three plots side by side as in a grid. (Hint: use function `plot_grid()` from the `cowplot` package)
+For each time series, i.e., Renewable Energy Production and Hydroelectric Consumption create three plots: one with time series, one with the ACF and with the PACF. You may use the same code from A2, but I want all the three plots side by side as in a grid. (Hint: use function `plot_grid()` from the `cowplot` package)
+
+```{r Data Import}
+#Importing data set
+raw_data <- read_excel(path=here('Data', 
+          'Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx'),
+          skip = 12, sheet="Monthly Data",col_names=FALSE) 
+
+#Extract the column names from row 11
+read_col_names <- read_excel(path=here('Data', 
+          'Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx'),
+            skip = 10,n_max = 1, sheet="Monthly Data",col_names=FALSE) 
+
+colnames(raw_data) <- read_col_names
+
+#Data frame
+energy_df <- raw_data[,c('Month', 'Total Biomass Energy Consumption', 
+                         'Total Renewable Energy Consumption', 
+                         'Hydroelectric Power Consumption')]
+
+nospace_colnames <- c('date', 'biomass', 'total_renew', 'hydro')
+colnames(energy_df) <- nospace_colnames
+
+#Time series structure
+energy_ts <- ts(energy_df[,2:4], start=c(1973, 1), frequency = 12)
+```
+
+```{r Biomass Plots}
+bm_tsplot <- ggplot(data=energy_df, aes(x=date, y=biomass))+
+  geom_line(color='darkseagreen')+
+  labs(x='Date', y='Biomass (Trillion Btu)', 
+       title='Biomass Energy over time', subtitle = '1973-2023')
+
+bm_acfplot <- autoplot(Acf(energy_ts[,1], lag.max=40, main="Biomass ACF"))
+                       
+bm_pacfplot <- autoplot(Pacf(energy_ts[,1], lag.max=40, main="Biomass PACF"))
+
+plot_grid(bm_tsplot, bm_acfplot, bm_pacfplot)
+```
+
+```{r Hydropower Plots}
+hp_tsplot <- ggplot(data=energy_df, aes(x=date, y=hydro))+
+  geom_line(color='steelblue4')+
+  labs(x='Date', y='Hydropower (Trillion Btu)', 
+       title='Hydropower over time', subtitle = '1973-2023')
+
+hp_acfplot <- autoplot(Acf(energy_ts[,3], lag.max=40, main="Hydropower ACF"))
+                       
+hp_pacfplot <- autoplot(Pacf(energy_ts[,3], lag.max=40, main="Hydropower PACF"))
+
+plot_grid(hp_tsplot, hp_acfplot, hp_pacfplot)
+```
+
+```{r Total Renewable Plots}
+tre_tsplot <- ggplot(data=energy_df, aes(x=date, y=total_renew))+
+  geom_line(color='plum4')+
+  labs(x='Date', y='Renewable Energy (Trillion Btu)', 
+       title='Renewable Energy over time', subtitle = '1973-2023')
+
+tre_acfplot <- autoplot(Acf(energy_ts[,2], lag.max=40, 
+                           main="Renewable Energy ACF"))
+                       
+tre_pacfplot <- autoplot(Pacf(energy_ts[,2], lag.max=40, 
+                             main="Renewable Energy PACF"))
+
+plot_grid(tre_tsplot, tre_acfplot, tre_pacfplot)
+```
 
 ### Q2
 
