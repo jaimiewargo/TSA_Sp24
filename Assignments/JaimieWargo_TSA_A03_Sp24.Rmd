@@ -223,6 +223,9 @@ dummies <- seasonaldummy(energy_ts[,2])
 
 tre_seas_means_model <- lm(energy_df[,3]~dummies)
 summary(tre_seas_means_model)
+
+tre_beta_int <- tre_seas_means_model$coefficients[1]
+tre_beta_coeff <- tre_seas_means_model$coefficients[2:12]
 ```
 
 ```{r}
@@ -230,12 +233,71 @@ dummies <- seasonaldummy(energy_ts[,3])
 
 hp_seas_means_model <- lm(energy_df[,4]~dummies)
 summary(hp_seas_means_model)
+
+hp_beta_int <- hp_seas_means_model$coefficients[1]
+hp_beta_coeff <- hp_seas_means_model$coefficients[2:12]
 ```
+
+The results do match my assessment in Q6. The hydro seasonality explains 45.99% of variation in the model, while the renewables seasonal model explain 0.9% (unadjusted R2). This means that hydro does have a seasonal component, while total renewable energy does not.
 
 ### Q8
 
 Use the regression coefficients from Q7 to deseason the series. Plot the deseason series and compare with the plots from part Q1. Did anything change?
 
+```{r}
+tre_seas_comp <- array(0,nobs)
+
+for(i in 1:nobs){
+  tre_seas_comp[i] <- (tre_beta_int+tre_beta_coeff %*% dummies[i,])
+}
+
+deseason_tre_data <- energy_df[,3]-tre_seas_comp
+
+ggplot(energy_df, aes(x=date, y=total_renew)) +
+            geom_line(color="plum4") +
+            geom_line(aes(y=deseason_tre_data), col="darkmagenta")
+```
+
+```{r}
+hp_seas_comp <- array(0,nobs)
+
+for(i in 1:nobs){
+  hp_seas_comp[i] <- (hp_beta_int+hp_beta_coeff %*% dummies[i,])
+}
+
+deseason_hp_data <- energy_df[,4]-hp_seas_comp
+
+ggplot(energy_df, aes(x=date, y=hydro)) +
+            geom_line(color="steelblue2") +
+            geom_line(aes(y=deseason_hp_data), col="steelblue4")
+```
+
+The renewables plot just shifted down, but the shape was not impacted by removing the seasonal component. For the hydro series, there is a significant change in the shape. This shows that the hydro series did in fact have a strong seasonal component.
+
 ### Q9
 
-Plot ACF and PACF for the deseason series and compare with the plots from Q1. You may use plot_grid() again to get them side by side. nut mot mandatory. Did the plots change? How?
+Plot ACF and PACF for the deseason series and compare with the plots from Q1. You may use plot_grid() again to get them side by side. but not mandatory. Did the plots change? How?
+
+```{r}
+tre_ts_deseason<- ts(deseason_tre_data, frequency = 12, start(1973,1))
+
+tre_acfplot_ds <- autoplot(Acf(tre_ts_deseason, lag.max=40, plot=F), main=NULL)
+                       
+tre_pacfplot_ds <- autoplot(Pacf(tre_ts_deseason, lag.max=40,plot=F),main=NULL)
+
+plot_grid(tre_acfplot, tre_acfplot_ds, tre_pacfplot, tre_pacfplot_ds)
+
+```
+
+```{r}
+hp_ts_deseason <- ts(deseason_hp_data, frequency = 12, start(1973,1))
+
+hp_acfplot_ds <- autoplot(Acf(hp_ts_deseason, lag.max=40, plot=F), main=NULL)
+                       
+hp_pacfplot_ds <- autoplot(Pacf(hp_ts_deseason, lag.max=40,plot=F),main=NULL)
+
+plot_grid(hp_acfplot, hp_acfplot_ds, hp_pacfplot, hp_pacfplot_ds)
+
+```
+
+The renewable energy plots again do not change much. However, the hydropower plots have a significant difference after being deseasoned. The ACF changes from oscillating to having slowly declining values for each lag, and the PACF mimics this with a strong lag 1 value and no other strong lags.
