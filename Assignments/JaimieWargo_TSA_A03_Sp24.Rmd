@@ -118,7 +118,7 @@ plot_grid(tre_tsplot, tre_acfplot, tre_pacfplot)
 
 From the plot in Q1, do the series Total Biomass Energy Production, Total Renewable Energy Production, Hydroelectric Power Consumption appear to have a trend? If yes, what kind of trend?
 
-Answer: The biomass and total renewable energy plots both seem to have an upwards trend, whereas hydroelectric appears constant over the course of the observations.
+Answer: The biomass and total renewable energy plots both seem to have an upwards, roughly linear trend, whereas hydroelectric appears constant over the course of the observations.
 
 ### Q3
 
