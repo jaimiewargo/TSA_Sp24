@@ -212,11 +212,25 @@ Set aside the detrended series and consider the original series again from Q1 to
 
 Just by looking at the time series and the acf plots, do the series seem to have a seasonal trend? No need to run any code to answer your question. Just type in you answer below.
 
-Answer:
+Answer: The hydro plots strongly suggestthat there is a seasonal trend, which makes sense since inflows are dependent on weather. The renewables plots do not have an obvious seasonal trend component just from visual assessment.
 
 ### Q7
 
 Use function *lm()* to fit a seasonal means model (i.e. using the seasonal dummies) the two time series. Ask R to print the summary of the regression. Interpret the regression output. From the results which series have a seasonal trend? Do the results match you answer to Q6?
+
+```{r}
+dummies <- seasonaldummy(energy_ts[,2])  
+
+tre_seas_means_model <- lm(energy_df[,3]~dummies)
+summary(tre_seas_means_model)
+```
+
+```{r}
+dummies <- seasonaldummy(energy_ts[,3])
+
+hp_seas_means_model <- lm(energy_df[,4]~dummies)
+summary(hp_seas_means_model)
+```
 
 ### Q8
 
