@@ -61,9 +61,9 @@ read_col_names <- read_excel(path=here('Data',
 colnames(raw_data) <- read_col_names
 
 #Data frame
-energy_df <- raw_data[,c('Month', 'Total Biomass Energy Consumption', 
+energy_df <- data.frame(raw_data[,c('Month', 'Total Biomass Energy Consumption', 
                          'Total Renewable Energy Consumption', 
-                         'Hydroelectric Power Consumption')]
+                         'Hydroelectric Power Consumption')])
 
 nospace_colnames <- c('date', 'biomass', 'total_renew', 'hydro')
 colnames(energy_df) <- nospace_colnames
@@ -73,42 +73,43 @@ energy_ts <- ts(energy_df[,2:4], start=c(1973, 1), frequency = 12)
 ```
 
 ```{r Biomass Plots}
+
 bm_tsplot <- ggplot(data=energy_df, aes(x=date, y=biomass))+
   geom_line(color='darkseagreen')+
   labs(x='Date', y='Biomass (Trillion Btu)', 
        title='Biomass Energy over time', subtitle = '1973-2023')
 
-bm_acfplot <- autoplot(Acf(energy_ts[,1], lag.max=40, main="Biomass ACF"))
+bm_acfplot <- autoplot(Acf(energy_ts[,1], lag.max=40, plot=F), main="Biomass ACF")
                        
-bm_pacfplot <- autoplot(Pacf(energy_ts[,1], lag.max=40, main="Biomass PACF"))
+bm_pacfplot <- autoplot(Pacf(energy_ts[,1], lag.max=40, plot=F), main="Biomass PACF")
 
 plot_grid(bm_tsplot, bm_acfplot, bm_pacfplot)
 ```
 
 ```{r Hydropower Plots}
+
 hp_tsplot <- ggplot(data=energy_df, aes(x=date, y=hydro))+
   geom_line(color='steelblue4')+
   labs(x='Date', y='Hydropower (Trillion Btu)', 
        title='Hydropower over time', subtitle = '1973-2023')
 
-hp_acfplot <- autoplot(Acf(energy_ts[,3], lag.max=40, main="Hydropower ACF"))
+hp_acfplot <- autoplot(Acf(energy_ts[,3], lag.max=40, plot=F), main="Hydropower ACF")
                        
-hp_pacfplot <- autoplot(Pacf(energy_ts[,3], lag.max=40, main="Hydropower PACF"))
+hp_pacfplot <- autoplot(Pacf(energy_ts[,3], lag.max=40, plot=F), main="Hydropower PACF")
 
 plot_grid(hp_tsplot, hp_acfplot, hp_pacfplot)
 ```
 
 ```{r Total Renewable Plots}
+
 tre_tsplot <- ggplot(data=energy_df, aes(x=date, y=total_renew))+
   geom_line(color='plum4')+
   labs(x='Date', y='Renewable Energy (Trillion Btu)', 
        title='Renewable Energy over time', subtitle = '1973-2023')
 
-tre_acfplot <- autoplot(Acf(energy_ts[,2], lag.max=40, 
-                           main="Renewable Energy ACF"))
+tre_acfplot <- autoplot(Acf(energy_ts[,2], lag.max=40, plot=F),main="Renewable Energy ACF")
                        
-tre_pacfplot <- autoplot(Pacf(energy_ts[,2], lag.max=40, 
-                             main="Renewable Energy PACF"))
+tre_pacfplot <- autoplot(Pacf(energy_ts[,2], lag.max=40,plot=F),main="Renewable Energy PACF")
 
 plot_grid(tre_tsplot, tre_acfplot, tre_pacfplot)
 ```
@@ -117,17 +118,91 @@ plot_grid(tre_tsplot, tre_acfplot, tre_pacfplot)
 
 From the plot in Q1, do the series Total Biomass Energy Production, Total Renewable Energy Production, Hydroelectric Power Consumption appear to have a trend? If yes, what kind of trend?
 
+Answer: The biomass and total renewable energy plots both seem to have an upwards trend, whereas hydroelectric appears constant over the course of the observations.
+
 ### Q3
 
-Use the *lm()* function to fit a linear trend to the three time series. Ask R to print the summary of the regression. Interpret the regression output, i.e., slope and intercept. Save the regression coefficients for further analysis.
+Use the *lm()* function to fit a linear trend to the three time series (I am going to just use total renewable and hydro as indicated in lecture 2/1). Ask R to print the summary of the regression. Interpret the regression output, i.e., slope and intercept. Save the regression coefficients for further analysis.
+
+```{r}
+
+nobs <- nrow(energy_df)
+t <- 1:nobs
+
+renewable_trend <- lm(energy_df[,3]~t)
+summary(renewable_trend)
+
+tre_beta0 <- renewable_trend$coefficients[1]
+tre_beta1 <- renewable_trend$coefficients[2]
+```
+
+The R2 of 0.8131 indicates that 81.31% of variation can be explained by the trend. The overall slope is estimated at 0.685, indicating an increasing trend, and the intercept of 184 indicates the starting value as modeled linearly, starting at 184 trillion Btu of renewable energy in 1973.
+
+```{r}
+hydro_trend <- lm(energy_df[,4]~t)
+summary(hydro_trend)
+
+hp_beta0 <- hydro_trend$coefficients[1]
+hp_beta1 <- hydro_trend$coefficients[2]
+```
+
+The R2 of 0.013 indicates that 1.3% of variation can be explained by the trend. The overall slope is estimated at -0.00985, indicating a fairly flat trend (or lack thereof), and the intercept of 82.73 indicates the starting value as modeled linearly, starting at 82.73 trillion Btu of hydroelectric energy in 1973.
 
 ### Q4
 
 Use the regression coefficients from Q3 to detrend the series. Plot the detrended series and compare with the plots from Q1. What happened? Did anything change?
 
+```{r}
+tre_detrend <- energy_df[,3] - (tre_beta0+tre_beta1*t)
+
+tre_df <- data.frame('date'=energy_df$date,
+                         'observed'=energy_df[,3],
+                         'detrend'=tre_detrend)
+
+ggplot(tre_df, aes(x=date))+
+  geom_line(aes(y=observed), color='plum4')+
+  geom_line(aes(y=detrend), color='purple4')
+```
+
+```{r}
+hp_detrend <- energy_df[,4] - (hp_beta0+hp_beta1*t)
+
+hp_df <- data.frame('date'=energy_df$date,
+                         'observed'=energy_df[,4],
+                         'detrend'=hp_detrend)
+
+ggplot(hp_df, aes(x=date))+
+  geom_line(aes(y=observed), color='steelblue4')+
+  geom_line(aes(y=detrend), color='darkblue')
+```
+
+The renewable energy plot flattened significantly as it lost its upward trend. The hydro plot just shifted down to center at 0, but the shape of the series did not change. This makes sense because the trend of the renewables plot was very influential to the plot's shape, whereas the trend for the hydro series was not.
+
 ### Q5
 
-Plot ACF and PACF for the detrended series and compare with the plots from Q1. You may use plot_grid() again to get them side by side. nut mot mandatory. Did the plots change? How?
+Plot ACF and PACF for the detrended series and compare with the plots from Q1. You may use plot_grid() again to get them side by side. but not mandatory. Did the plots change? How?
+
+```{r}
+tre_ts_detrend <- ts(tre_df$detrend, frequency = 12, start(1973,1))
+
+tre_acfplot_dt <- autoplot(Acf(tre_ts_detrend, lag.max=40, plot=F), main=NULL)
+                       
+tre_pacfplot_dt <- autoplot(Pacf(tre_ts_detrend, lag.max=40,plot=F),main=NULL)
+
+plot_grid(tre_acfplot, tre_acfplot_dt, tre_pacfplot, tre_pacfplot_dt)
+```
+
+```{r}
+hp_ts_detrend <- ts(hp_df$detrend, frequency = 12, start(1973,1))
+
+hp_acfplot_dt <- autoplot(Acf(hp_ts_detrend, lag.max=40, plot=F), main=NULL)
+                       
+hp_pacfplot_dt <- autoplot(Pacf(hp_ts_detrend, lag.max=40,plot=F),main=NULL)
+
+plot_grid(hp_acfplot, hp_acfplot_dt, hp_pacfplot, hp_pacfplot_dt)
+```
+
+The ACF and PACF plots did not appear to change from the removal of the trend. There were a few more prominent lags for the renewables PACF, with lags 12 and 13 having PACFs further from zero, but there were no notable shifts in these plots.
 
 ## Seasonal Component
 
@@ -136,6 +211,8 @@ Set aside the detrended series and consider the original series again from Q1 to
 ### Q6
 
 Just by looking at the time series and the acf plots, do the series seem to have a seasonal trend? No need to run any code to answer your question. Just type in you answer below.
+
+Answer:
 
 ### Q7
 
