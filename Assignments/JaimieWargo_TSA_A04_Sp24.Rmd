@@ -119,7 +119,7 @@ diff_plot<-ggplot(energy_df, aes(x=date, y=diff_renewable))+
 
 detrended_plot<-ggplot(tre_df, aes(x=date, y=detrend))+
   geom_line(color='steelblue3')+
-  labs(x='Date', y='Detrended Series')
+  labs(x='Date', y='LM Detrended Series')
 
 #Addingtitle 
 plot_row<-plot_grid(ts_plot,diff_plot,detrended_plot,nrow=1,ncol=3) 
@@ -142,7 +142,7 @@ tre_acfplot <- autoplot(Acf(energy_ts[,2], lag.max=40, plot=F),
 tre_ts_detrend <- ts(tre_df$detrend, frequency = 12, start(1973,1))
 
 detrend_acf<- autoplot(Acf(tre_ts_detrend, lag.max=40, plot=F), 
-                       main="Detrended")
+                       main="LInear Detrend")
                        
 tre_diff_ts <- ts(energy_df$diff_renewable, frequency = 12, start(1973,1))
 
