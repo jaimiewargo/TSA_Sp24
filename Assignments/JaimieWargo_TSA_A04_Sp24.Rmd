@@ -136,9 +136,28 @@ plot_grid(title,plot_row,nrow=2,ncol=1,rel_heights=c(0.1,1))
 Plot the ACF for the three series and compare the plots. Add the argument `ylim=c(-0.5,1)` to the autoplot() or Acf() function - whichever you are using to generate the plots - to make sure all three y axis have the same limits. Which method do you think was more efficient in eliminating the trend? The linear regression or differencing?
 
 ```{r}
+tre_acfplot <- autoplot(Acf(energy_ts[,2], lag.max=40, plot=F),
+                        main="Renewable Energy ACF")
 
+tre_ts_detrend <- ts(tre_df$detrend, frequency = 12, start(1973,1))
 
+detrend_acf<- autoplot(Acf(tre_ts_detrend, lag.max=40, plot=F), 
+                       main="Detrended")
+                       
+tre_diff_ts <- ts(energy_df$diff_renewable, frequency = 12, start(1973,1))
+
+diff_acf <- autoplot(Acf(tre_diff_ts, lag.max=40,plot=F),
+                     main="Differenced")
+
+plot_row<-plot_grid(tre_acfplot, detrend_acf, diff_acf,nrow=1,ncol=3) 
+
+title<-ggdraw()+
+  draw_label("Renewable Energy Consumption ACFs",fontface='bold') 
+
+plot_grid(title,plot_row,nrow=2,ncol=1,rel_heights=c(0.1,1))
 ```
+
+The differenced series ACF shows that this method was the most efficient in differencing the trend. The values now do not exceed \~0.7. It does seem like there may be some seasonality remaining with strong lags at 12, 24, and 36 months, but overall it succeeded at removing the trend.
 
 ### Q5
 
