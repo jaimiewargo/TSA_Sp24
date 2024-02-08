@@ -164,9 +164,18 @@ The differenced series ACF shows that this method was the most efficient in diff
 Compute the Seasonal Mann-Kendall and ADF Test for the original "Total Renewable Energy Production" series. Ask R to print the results. Interpret the results for both test. What is the conclusion from the Seasonal Mann Kendall test? What's the conclusion for the ADF test? Do they match what you observed in Q2? Recall that having a unit root means the series has a stochastic trend. And when a series has stochastic trend we need to use a different procedure to remove the trend.
 
 ```{r}
+tre_mk <- SeasonalMannKendall(energy_ts[,2])
 
+print("Results for Seasonal Mann Kendall")
+print(summary(tre_mk))
 
+tre_adf <- adf.test(energy_ts[,2], alternative = c('stationary'))
+
+print("Results for ADF Test")
+print(tre_adf)
 ```
+
+The ADF test
 
 ### Q6
 
