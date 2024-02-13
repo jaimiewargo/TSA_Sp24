@@ -8,13 +8,13 @@ output: pdf_document
 
 First R code chunk is used for setting the options for all R code chunks. The choice echo=TRUE means both code and output will appear on report, include = FALSE neither code nor output is printed.
 
-```{r setup, include=FALSE} 
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=80), tidy=FALSE) 
 ```
 
 ## Loading packages and initializing
 
-Second R code chunk is for loading packages. By setting message = FALSE, the code will appear but not the output. 
+Second R code chunk is for loading packages. By setting message = FALSE, the code will appear but not the output.
 
 ```{r package, message=FALSE}
 library(lubridate)
@@ -27,7 +27,7 @@ library(tseries)
 
 ## Importing data
 
-Let's continue working with our inflow data for reservoirs in Brazil. 
+Let's continue working with our inflow data for reservoirs in Brazil.
 
 ```{r}
 
@@ -48,6 +48,7 @@ colnames(raw_inflow_data)=c("Month","Year", "HP1", "HP2","HP3","HP4", "HP5",
 head(raw_inflow_data)
 str(raw_inflow_data)
 ```
+
 ## Creating the date object
 
 Here we use the function my() from package lubridate.
@@ -62,7 +63,6 @@ inflow_data <- cbind(my_date,raw_inflow_data[,3:(3+nhydro-1)])
 head(inflow_data)
 
 ```
-
 
 ## Initial Plots
 
@@ -79,7 +79,7 @@ for(i in 1:nhydro){
 
 ```
 
-## Zeros in the end on data 
+## Zeros in the end on data
 
 The initial plots showed that we have zeros in the end of the data set. It could be missing observation or observation that haven't been observed yet. Use the tail() to find out how many zeros you have and how many lines you will need to remove.
 
@@ -89,6 +89,7 @@ tail(inflow_data)
 
 
 ```
+
 Note our last observation is from August 2011 but the data file was filled with zeros. Let's remove the last four rows of our data set.
 
 ```{r}
@@ -101,11 +102,12 @@ nobs <- nobs-12
 #Tail again to check if the rows were correctly removed
 tail(inflow_data)
 ```
+
 Fixed!
 
 ## Transforming data into time series object
 
-Many of the functions we will use require a time series object. You can transform your data in a time series using the function *ts()*. 
+Many of the functions we will use require a time series object. You can transform your data in a time series using the function *ts()*.
 
 ```{r}
 ts_inflow_data <- ts(inflow_data[,2:(2+nhydro-1)],frequency=12) 
@@ -113,7 +115,7 @@ ts_inflow_data <- ts(inflow_data[,2:(2+nhydro-1)],frequency=12)
 head(ts_inflow_data,15)
 ```
 
-Note that ts_inflow_data has information on start, end and frequency. 
+Note that ts_inflow_data has information on start, end and frequency.
 
 ## Plotting ACF and PACF
 
@@ -130,10 +132,9 @@ for(i in 1:nhydro){
 
 ```
 
-
 ## Trend Component
 
-Let's identify and remove trend component. You start by fitting a linear model to $Y_t=\beta_0+\beta_1*t+\epsilon_t$. 
+Let's identify and remove trend component. You start by fitting a linear model to $Y_t=\beta_0+\beta_1*t+\epsilon_t$.
 
 ```{r}
 #Create vector t
@@ -159,7 +160,6 @@ ggplot(inflow_data, aes(x=my_date, y=inflow_data[,(1+iHP)])) +
 
 ```
 
-
 ```{r}
 #remove the trend from series
 detrend_inflow_data <- inflow_data[,(iHP+1)]-(beta0+beta1*t)
@@ -174,6 +174,7 @@ ggplot(inflow_data, aes(x=my_date, y=inflow_data[,(1+iHP)])) +
             geom_smooth(aes(y=detrend_inflow_data),color="orange",method="lm") 
 
 ```
+
 Note that blue line is our original series, red line is our trend, green line is our original series minus the trend or in other words the detrended series. And in orange is the trend line for the detrended series which has slope 0 meaning we were able to effectively eliminate the trend with a linear model.
 
 ## Seasonal Component
@@ -226,7 +227,7 @@ ggplot(inflow_data, aes(x=my_date, y=inflow_data[,(1+iHP)])) +
 
 ## Stationarity Tests in R
 
-Before we get started with the tests recall that for the year 2011 we only have data until Aug 2011. Let's filter our dataset to remove that last year. 
+Before we get started with the tests recall that for the year 2011 we only have data until Aug 2011. Let's filter our dataset to remove that last year.
 
 ```{r}
 ts_inflow_data <- as.ts(ts_inflow_data[1:960,])
@@ -258,7 +259,7 @@ ggplot(inflow_data_new_yearly, aes(x=my_year, y=inflow_data_yearly)) +
 
 ```
 
-### Mann Kendall 
+### Mann Kendall
 
 Check for deterministic trend.
 
@@ -276,7 +277,7 @@ print(summary(MannKendall(inflow_data_yearly)))
 
 ```
 
-### Spearman Correlation test 
+### Spearman Correlation test
 
 Also check for deterministic trend, for non-seasonal data only.
 
@@ -308,4 +309,3 @@ print(adf.test(inflow_data_yearly, alternative = "stationary"))
 ##Exercise
 
 Run the stationarity tests for the other variables HP2, HP3, ...
-
