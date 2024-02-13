@@ -175,20 +175,45 @@ print("Results for ADF Test")
 print(tre_adf)
 ```
 
-The ADF test
+The ADF test gave a p-value of 0.8957, meaning that we reject the alternate hypothesis of stationarity. This indicates that the renewable energy series has a unit root, meaning the series needs to be detrended with differencing rather than the function. The Mann Kendall test returned a p-value less than 0.05, signaling that there is a trend present in this series.
 
 ### Q6
 
 Aggregate the original "Total Renewable Energy Production" series by year. You can use the same procedure we used in class. Store series in a matrix where rows represent months and columns represent years. And then take the columns mean using function colMeans(). Recall the goal is the remove the seasonal variation from the series to check for trend. Convert the accumulates yearly series into a time series object and plot the series using autoplot().
 
 ```{r}
+energy_data_matrix <- matrix(energy_ts[,2],byrow=FALSE,nrow=12)
+energy_data_yearly <- colMeans(energy_data_matrix)
+my_year <- c(year(first(energy_df$date)):year(last(energy_df$date)))
 
+energy_data_yearly <- data.frame(my_year, energy_data_yearly)
+
+ts_yearly <- ts(energy_data_yearly[,2], start=c(1973,1), frequency = 12)
+
+autoplot(ts_yearly)+
+  ggtitle("Total Renewable Energy Yearly Time Series")+
+  ylab("Trillion Btu")
 ```
 
 ### Q7
 
-Apply the Mann Kendal, Spearman correlation rank test and ADF. Are the results from the test in agreement with the test results for the monthly series, i.e., results for Q6?
+Apply the Mann Kendall, Spearman correlation rank test and ADF. Are the results from the test in agreement with the test results for the monthly series, i.e., results for Q6?
 
 ```{r}
+tre_mk <- SeasonalMannKendall(ts_yearly)
 
+print("Results for Seasonal Mann Kendall")
+print(summary(tre_mk))
+
+tre_adf <- adf.test(ts_yearly, alternative = c('stationary'))
+
+print("Results for ADF Test")
+print(tre_adf)
+
+sp_tre <- cor.test(ts_yearly,my_year,method="spearman")
+
+print("Results for Spearman Test")
+print(sp_tre)
 ```
+
+The results are in agreement with the procedure for Q5. While the ADF p-value did decrease from 0.8957 to 0.5147, this value is still not statistically significant, meaning this is still a stochastic series. The Mann Kendall test provided the same results as well, indicating a trend. The Spearman test also indicated a strong trend, with a rho of 0.92 and p-value below 0.05.
