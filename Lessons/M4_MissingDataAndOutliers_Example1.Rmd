@@ -8,13 +8,13 @@ output: pdf_document
 
 First R code chunk is used for setting the options for all R code chunks. The choice echo=TRUE means both code and output will appear on report, include = FALSE neither code nor output is printed.
 
-```{r setup, include=FALSE} 
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=80), tidy=FALSE) 
 ```
 
 ## Loading packages and initializing
 
-Second R code chunk is for loading packages. By setting message = FALSE, the code will appear but not the output. 
+Second R code chunk is for loading packages. By setting message = FALSE, the code will appear but not the output.
 
 ```{r package, message=FALSE}
 library(lubridate)
@@ -22,6 +22,7 @@ library(ggplot2)
 library(forecast)
 library(Kendall)
 library(tseries)
+library(here)
 
 #New packages for M4
 #install.packages("outliers")
@@ -33,12 +34,13 @@ library(tidyverse)
 
 ## Importing data
 
-Let's continue working with our inflow data for reservoirs in Brazil. 
+Let's continue working with our inflow data for reservoirs in Brazil.
 
 ```{r}
 #This R cde chunk was copied from M4
 #Importing time series data from text file#
-raw_inflow_data <- read.table(file="./Data/inflowtimeseries.txt",header=FALSE,skip=0)
+raw_inflow_data <- read.table(file=here('Data', 'inflowtimeseries.txt'),
+                              header=FALSE,skip=0)
 
 colnames(raw_inflow_data)=c("Month","Year", "HP1", "HP2","HP3","HP4", "HP5",
                             "HP6","HP7", "HP8","HP9","HP10", "HP11","HP12", 
@@ -69,14 +71,15 @@ ts_inflow_data <- ts(inflow_data[,2:(2+nhydro-1)],frequency=12)
 
 ## Initial plots for outlier detection
 
-Scatter plots, box plots and histograms are the most preferred visualization tools to detect outliers.  Histograms will help you understand the shape and spread of the data and to identify any potential outliers. And boxplots will give more information on the spread of the data. 
+Scatter plots, box plots and histograms are the most preferred visualization tools to detect outliers. Histograms will help you understand the shape and spread of the data and to identify any potential outliers. And boxplots will give more information on the spread of the data.
 
 ```{r}
 #using package ggplot2 to make histograms
 for(i in 1:nhydro){
   print(ggplot(inflow_data, aes(inflow_data[,(1+i)])) +
             geom_histogram() +
-            xlab(paste0("Inflow ",colnames(inflow_data)[(1+i)],sep="")) 
+            xlab(paste0("Inflow ",
+                        colnames(inflow_data)[(1+i)],sep="")) 
         )
 }
 
@@ -92,10 +95,9 @@ for(i in 1:nhydro){
 
 Note from the plots that some reservoirs have many points outside the box. But it's hard to tell if those are outliers or not because we are looking at the time series with all its components. The idea is to first remove any seasonality and trend in the data, and then find outliers in the remainder series.
 
-
 ## Decomposing the time series
 
-The stats package has a function called decompose(). This function only take time series object. As the name says the decompose function will decompose your time series into three components: trend, seasonal and random. This is similar to what we did in the previous script, but in a more automated way. 
+The stats package has a function called decompose(). This function only take time series object. As the name says the decompose function will decompose your time series into three components: trend, seasonal and random. This is similar to what we did in the previous script, but in a more automated way.
 
 The random component is the time series without seasonal and trend component. Let's try to identify outliers by looking at the random component only.
 
@@ -120,8 +122,9 @@ sd_inflow <- sd(na.exclude(inflow_random))
 cat(mean_inflow,sd_inflow)
 
 autoplot(inflow_random)+
-  autolayer(tsclean(inflow_random))
+  autolayer(tsclean(inflow_random), color="steelblue3")
 
+#tsclean() removes outliers from additive series
 ```
 
 ## Missing observations
@@ -148,6 +151,7 @@ head(df_inflow_random,10)
 tail(df_inflow_random,10)
 
 ```
+
 Data is ready!
 
 ## Visualizing outliers in R
@@ -159,29 +163,28 @@ ggplot(df_inflow_random, aes(x=month, y=inflow)) +
 
 ggplot(df_inflow_random, aes(x=date, y=inflow)) +
             geom_line() +
-            geom_abline(slope=0,intercept=3*sd_inflow,color="red") +
-            geom_abline(slope=0,intercept=-3*sd_inflow,color="red")
+            geom_abline(slope=0,intercept=3*sd_inflow,color="red3") +
+            geom_abline(slope=0,intercept=-3*sd_inflow,color="red3")
 
 ggplot(df_inflow_random, aes(y=inflow)) +
             geom_boxplot() 
 ```
 
-Since we removed the seasonal and trend component, the mean of the random series should be close to zero. Note that from the line plot with the red lines we see that we do have some outliers. The outliers could be due to error collecting the data or an extreme event. Either way, we may want to remove/replace them before fitting a model to our data set to avoid the effect of outliers on our model coefficients. 
+Since we removed the seasonal and trend component, the mean of the random series should be close to zero. Note that from the line plot with the red lines we see that we do have some outliers. The outliers could be due to error collecting the data or an extreme event. Either way, we may want to remove/replace them before fitting a model to our data set to avoid the effect of outliers on our model coefficients.
 
 The box plots are showing more detailed information about the probability distribution for each month of the year. Note that the same months have larger standard deviations.
 
+## Using pre-built functions for outlier detection
 
-## Using pre-built functions for outlier detection 
-
-When it comes to outlier identification and removal, it is better to use multiple methods to identify outliers. For example, the statistical methods should be complemented with visual approaches for outlier identification. We will explore a few functions for outlier detection in R. 
+When it comes to outlier identification and removal, it is better to use multiple methods to identify outliers. For example, the statistical methods should be complemented with visual approaches for outlier identification. We will explore a few functions for outlier detection in R.
 
 `outlier()`: this function identifies the value that deviates the most from the mean, but does not run any statistical test to check if most deviating value is an outlier.
 
-**Dixon’s Q Test: **This test is applicable to a small sample dataset (the sample size is between 3 and 30) and when data is normally distributed. Although Dixon’s Q test assumes normality, it is robust to departure from normality.
+**Dixon’s Q Test:** This test is applicable to a small sample dataset (the sample size is between 3 and 30) and when data is normally distributed. Although Dixon’s Q test assumes normality, it is robust to departure from normality.
 
 `dixon.test()`: this function will check if extreme value is an outlier using hypothesis testing. The null hypothesis for the test is "H0: extreme value not an outlier". Remember to look at p-value to make the decision whether to reject H0 or not.
 
-**Grubbs Test:** This test should be used when sample size n > 6, and data is normally distributed. 
+**Grubbs Test:** This test should be used when sample size n \> 6, and data is normally distributed.
 
 `grubbs.test()`: this function will also check if extreme value is an outlier using hypothesis testing. The null hypothesis for the test is "H0: extreme value not an outlier". Remember to look at p-value to make the decision whether to reject H0 or not. With a Grubbs' test, you assume that the dataset being tested for outliers is normally distributed.
 
@@ -189,8 +192,7 @@ When it comes to outlier identification and removal, it is better to use multipl
 
 `chisq.out.test()`: this function will check if extreme value is an outlier using hypothesis testing. The null hypothesis for the test is "H0: extreme value not an outlier". Remember to look at p-value to make the decision whether to reject H0 or not.
 
-If the test performed confirms an outlier and you want to remove use function `rm.outlier()`, it will remove it or replace by sample mean or median. When working with time series you cannot simply remove an outlier. Remember that in TSA we care about the time dependence structure, therefore eliminating observations is not an option. Instead we replace it with another value - preferably the local mean. 
-                      
+If the test performed confirms an outlier and you want to remove use function `rm.outlier()`, it will remove it or replace by sample mean or median. When working with time series you cannot simply remove an outlier. Remember that in TSA we care about the time dependence structure, therefore eliminating observations is not an option. Instead we replace it with another value - preferably the local mean.
 
 ```{r}
 #Just find extreme value
@@ -217,7 +219,6 @@ Note we still seem to have some outliers. You can repeat the process until the n
 
 If you want to take of all outliers and missing data at once you may use function `tsclean()` from package `forecast`. This function will identify and replace outliers and missing values in a time series. Just be careful when using this function because it will remove all extreme values without any consideration!
 
-
 ```{r}
 ts_inflow_random <- ts(inflow_random,frequency=12,start=c(1931,1))
 
@@ -228,11 +229,9 @@ autoplot(ts_inflow_random,series="Random")+
 
 ```
 
-
-
 ## Optional: Advanced coding
 
-If you want to create your own loop to remove outlier so that you have more control over the replacement/removal of outliers process, you may use the code below. Note I use a `loop while` that keeps checking if the most extreme value is an outlier until p-value is greater than 0.05. 
+If you want to create your own loop to remove outlier so that you have more control over the replacement/removal of outliers process, you may use the code below. Note I use a `loop while` that keeps checking if the most extreme value is an outlier until p-value is greater than 0.05.
 
 ```{r}
 summary(df_inflow_random$inflow)
@@ -272,6 +271,3 @@ summary(df_inflow_random$inflow)
 #Note from the summary that the after removing outliers we did not change the statistics of the original data (max, mix, mean, median, etc)
 
 ```
-
-
-
