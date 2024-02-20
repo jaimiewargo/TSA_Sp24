@@ -197,8 +197,8 @@ autoplot(full_clean_solar, series="Solar Clean") +
 ```
 
 ```{r}
-autoplot(full_clean_wind, series="Solar Clean") +
-  autolayer(ts_sw[,2], series="Solar Raw") +
+autoplot(full_clean_wind, series="Wind Clean") +
+  autolayer(ts_sw[,2], series="Wind Raw") +
   ylab("Solar Energy Consumption") 
 ```
 
