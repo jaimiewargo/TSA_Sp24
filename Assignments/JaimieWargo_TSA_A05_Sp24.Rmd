@@ -157,40 +157,70 @@ plot(decompose(ts_sw[,1], type="multiplicative")) #Solar
 plot(decompose(ts_sw[,2], type="multiplicative")) #Wind
 ```
 
-The random component looks much more random with the multiplicative decomposition, with more randomness in the wind
+The random component looks much more random with the multiplicative decomposition, with more randomness in the wind. The solar has some minor seasonality remaining, but still looks much better with the multiplicative decomposition.
 
 ### Q6
 
 When fitting a model to this data, do you think you need all the historical data? Think about the data from 90s and early 20s. Are there any information from those years we might need to forecast the next six months of Solar and/or Wind consumption. Explain your response.
 
-> Answer:
+> Answer: It's pretty evident that the solar and wind energy consumption did not truly begin until the mid 2000s. It may be beneficial not to include this data as to more accurately capture the trend, and there is not data there that would be helpful in predicting energy consumption for the next 6 months since there was none.
 
 ### Q7
 
 Create a new time series object where historical data starts on January 2012. Hint: use `filter()` function so that you don't need to point to row numbers, .i.e, `filter(xxxx, year(Date) >= 2012 )`. Apply the decompose function `type=additive` to this new time series. Comment the results. Does the random component look random? Think about our discussion in class about seasonal components that depends on the level of the series.
 
 ```{r}
+solar_wind_2012 <- solar_wind %>% 
+  filter(year(date) >= 2012 )
 
+ts_sw12 <- ts(solar_wind_2012[,2:3], start=c(2012,1), frequency=12)
+
+plot(decompose(ts_sw12[,1], type="additive")) #Solar
+plot(decompose(ts_sw12[,2], type="additive")) #Wind
 ```
 
-> Answer:
+> Answer: The random variable does look random for the wind series, but less so for the solar series. It seems that the solar may need the multiplicative decomposition, as the higher levels are showing a pattern in the random plot.
 
 ## Identify and Remove outliers
 
 ### Q8
 
-Apply the `tsclean()` to both series from Q7. Did the function removed any outliers from the series? Hint: Use `autoplot()` to check if there is difference between cleaned series and original series.
+Apply the `tsclean()` to both series from Q7 (I think this was a typo since Q9 asks for this– I will use the original ts data without cropping for 2012). Did the function removed any outliers from the series? Hint: Use `autoplot()` to check if there is difference between cleaned series and original series.
 
 ```{r}
+full_clean_solar <- tsclean(ts_sw[,1])
+full_clean_wind <- tsclean(ts_sw[,2])
 
+autoplot(full_clean_solar, series="Solar Clean") +
+  autolayer(ts_sw[,1], series="Solar Raw") +
+  ylab("Solar Energy Consumption") 
 ```
+
+```{r}
+autoplot(full_clean_wind, series="Solar Clean") +
+  autolayer(ts_sw[,2], series="Solar Raw") +
+  ylab("Solar Energy Consumption") 
+```
+
+There were many outliers removed from the raw data as shown in the fairly flat trend line starting around 2015, omitting the high peaks and low valleys of this series. The wind series also does this starting around 2010, where the variability is removed.
 
 ### Q9
 
-Redo number Q8 but now with the time series you created on Q7, i.e., the series starting in 2014. Using what `autoplot()` again what happened now?Did the function removed any outliers from the series?
+Redo number Q8 but now with the time series you created on Q7, i.e., the series starting in 2012. Using what `autoplot()` again what happened now? Did the function removed any outliers from the series?
 
 ```{r}
+clean_solar <- tsclean(ts_sw12[,1])
+clean_wind <- tsclean(ts_sw12[,2])
 
+autoplot(clean_solar, series="Solar Clean") +
+  autolayer(ts_sw12[,1], series="Solar Raw") +
+  ylab("Solar Energy Consumption") 
 ```
 
-> Answer:
+```{r}
+autoplot(clean_wind, series="Wind Clean") +
+  autolayer(ts_sw12[,2], series="Wind Raw") +
+  ylab("Wind Energy Consumption") 
+```
+
+> Answer: The solar series removed 2 outliers, the 2 dips in the winters before 2022 and 2023. I would not recommend removing these points because they seem related to seasonality and would be useful in predicting dips in future years. The wind series does not have any outliers removed. These series have far fewer adjustments from the raw data than the full time series.
