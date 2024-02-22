@@ -10,13 +10,13 @@ editor_options:
 
 First R code chunk is used for setting the options for all R code chunks. The choice echo=TRUE means both code and output will appear on report, include = FALSE neither code nor output is printed.
 
-```{r setup, include=FALSE} 
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=80), tidy=FALSE) 
 ```
 
 ## Loading packages and initializing
 
-Second R code chunk is for loading packages. By setting message = FALSE, the code will appear but not the output. 
+Second R code chunk is for loading packages. By setting message = FALSE, the code will appear but not the output.
 
 ```{r package, message=FALSE}
 library(lubridate)
@@ -32,7 +32,7 @@ library(cowplot)
 
 ## Importing data
 
-For this module we will work with monthly average for electricity retail price in US. The data is from the U.S. Energy Information Administration and can be download [here][https://www.eia.gov/electricity/data/browser/#/topic/7?agg=2,0,1&geo=g&freq=M%2013:41:41%20GMT-0500%20(EST)]. 
+For this module we will work with monthly average for electricity retail price in US. The data is from the U.S. Energy Information Administration and can be download [here][[https://www.eia.gov/electricity/data/browser/#/topic/7?agg=2,0,1&geo=g&freq=M%2013:41:41%20GMT-0500%20(EST)](https://www.eia.gov/electricity/data/browser/#/topic/7?agg=2,0,1&geo=g&freq=M%2013:41:41%20GMT-0500%20(EST)){.uri}].
 
 ```{r}
 
@@ -80,7 +80,7 @@ electricity_price_processed <-
 
 ## Transforming data into time series object
 
-Many of the functions we will use require a time series object. You can transform your data in a time series using the function *ts()*. 
+Many of the functions we will use require a time series object. You can transform your data in a time series using the function *ts()*.
 
 ```{r}
 ts_electricity_price <- ts(electricity_price_processed[,2:(nvar+1)],
@@ -92,6 +92,7 @@ head(ts_electricity_price,15)
 tail(ts_electricity_price,15)
 
 ```
+
 ## ACF and PACF plots
 
 ```{r}
@@ -106,7 +107,6 @@ plot_grid(
 )
 
 ```
-
 
 ## Decomposing the time series and removing seasonality
 
@@ -194,16 +194,11 @@ plot_grid(
 )
 ```
 
-
 ## Manually fitting ARIMA models to series
 
-In the section we will manually fit ARIMA models to the residential electricity price series using function Arima() from package *forecast*. 
-Some important arguments for Arima() are:
+In the section we will manually fit ARIMA models to the residential electricity price series using function Arima() from package *forecast*. Some important arguments for Arima() are:
 
-*y*: univariate (single vector) ts object 
-*order=c( , , )*: three orders (p,d,q) of non-seasonal part of the ARIMA in this order
-*include.mean*: the default is TRUE for undifferenced series, which means the model will include a mean term, and FALSE when d > 0
-*include.drift*: the default is FALSE, but changing to TRUE might lead to better fits. The drift will be necessary when the series mean is not zero even after differencing
+*y*: univariate (single vector) ts object *order=c( , , )*: three orders (p,d,q) of non-seasonal part of the ARIMA in this order *include.mean*: the default is TRUE for undifferenced series, which means the model will include a mean term, and FALSE when d \> 0 *include.drift*: the default is FALSE, but changing to TRUE might lead to better fits. The drift will be necessary when the series mean is not zero even after differencing
 
 ```{r}
 
@@ -271,6 +266,7 @@ compare_aic <- data.frame(compare_aic,Model_101_diff$aic)
 
 print(compare_aic)
 ```
+
 Note that AIC is worse for the ARIMA(1,0,1) with the non-difference series.
 
 ## Comparing models
@@ -282,6 +278,5 @@ One way of checking goodness of fit is by plotting observed versus fitted value 
 
 
 ```
+
 This is still non-seasonal data. If you want to compare to original series, you need to add seasonal component back.
-
-
