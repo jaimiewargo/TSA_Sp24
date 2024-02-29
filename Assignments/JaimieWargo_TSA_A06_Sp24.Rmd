@@ -1,7 +1,7 @@
 ---
 title: "ENV 797 - Time Series Analysis for Energy and Environment Applications | Spring 2024"
 subtitle: "Assignment 6 - Due date 02/28/24"
-author: "Student Name"
+author: "Jaimie Wargo"
 output: pdf_document
 geometry: margin=2.54cm
 ---
