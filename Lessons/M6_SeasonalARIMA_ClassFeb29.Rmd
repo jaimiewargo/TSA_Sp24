@@ -26,7 +26,7 @@ library(Kendall)
 library(tseries)
 library(outliers)
 library(tidyverse)
-
+library(cowplot)
 ```
 
 ## Importing data
@@ -85,6 +85,7 @@ colnames(Days) <- "Month"
 new_price <-left_join(Days, drop_rows_price, by="Month")
 
 #You should be able to see NAs for the dates missing in drop_rows_price 
+sum(is.na(new_price))
 
 ```
 
@@ -209,7 +210,7 @@ plot_grid(
                   main = "Seasonal-Differenced Residential"),
   autoplot(Pacf(residential_price_trend_diff, lag = 40, plot=FALSE),  
                   main = "Trend-Differenced Residential"),
-  autoplot(Acf(residential_price_both_diff, lag = 40, plot=FALSE),  
+  autoplot(Pacf(residential_price_both_diff, lag = 40, plot=FALSE),  
                   main = "Twice-Differenced Residential"),
   nrow=2
 )
@@ -229,17 +230,29 @@ plot_grid(
 ## Manually fitting seasonal ARIMA to original series
 
 ```{r}
+model1 <- Arima(ts_electricity_price[,'Residential'], order=c(1,1,1),
+                seasonal = c(0,1,1))
+print(model1)
 
-
+plot_grid(autoplot(model1$residuals),
+          autoplot(Acf(model1$residuals, lag.max = 40, plot = F)),
+          autoplot(Pacf(model1$residuals, lag.max = 40, plot=F)))
 ```
 
 ## Automatically fitting seasonal ARIMA to original series
 
 ```{r}
 
+model2 <- auto.arima(ts_electricity_price[,'Residential'])
+print(model2)
 
+plot_grid(autoplot(model2$residuals),
+          autoplot(Acf(model2$residuals, lag.max = 40, plot = F)),
+          autoplot(Pacf(model2$residuals, lag.max = 40, plot=F)))
 
-
+autoplot(ts_electricity_price[,'Residential'], series='Original')+
+  autolayer(model1$fitted, series='Model 1')+
+  autolayer(model2$fitted, series='Model 2')
 ```
 
 
