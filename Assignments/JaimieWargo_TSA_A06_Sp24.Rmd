@@ -26,6 +26,7 @@ library(tseries)
 library(sarima)
 library(here)
 library(tidyverse)
+library(cowplot)
 ```
 
 This assignment has general questions about ARIMA Models.
