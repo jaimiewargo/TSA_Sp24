@@ -129,16 +129,24 @@ These three function take a few main arguments:
 
 ```{r}
 #Model 1: Arithmetic mean on original data
-
+model1 <- meanf(ts_electricity_price[,1], h=12)
+summary(model1)
+plot(model1)
 
 #Model 2: Arithmetic mean on deseas data
-
+model2 <- meanf(deseasonal_allsectors_price, h=12)
+summary(model2)
+plot(model2)
 
 #Model 3: Seasonal naive on original data
-
+model3 <- snaive(ts_electricity_price[,1], h=12)
+summary(model3)
+plot(model3)
 
 #Model 4: Naive on deseas data
-
+model4 <- naive(deseasonal_allsectors_price, h=12)
+summary(model4)
+plot(model4)
 
 ```
 
@@ -170,16 +178,28 @@ We will try these models on the original dataset and the deaseason electricity p
 
 ```{r}
 # Model 5: Simple moving average on deseasonal data
+model5 <- sma(deseasonal_allsectors_price, h=12)
 
+autoplot(deseasonal_allsectors_price, series='deseasonal')+
+  autolayer(model5$forecast, series='SMA')
 
 # Model 6: Simple moving average on original data
+model6 <- sma(ts_electricity_price[,1], h=12)
 
+autoplot(ts_electricity_price[,1], series='Original')+
+  autolayer(model6$forecast, series='SMA')
 
 # Model 7:  Simple exponential smoothing on deseasonal data
+model7 <- ses(deseasonal_allsectors_price, h=12)
 
+autoplot(deseasonal_allsectors_price, series='deseasonal')+
+  autolayer(model7$mean, series='SES')
 
 # Model 8:  Simple exponential smoothing on original data
+model8 <- ses(ts_electricity_price[,1], h=12)
 
+autoplot(ts_electricity_price[,1], series='Original')+
+  autolayer(model8$mean, series='SES')
 
 
 
@@ -196,11 +216,19 @@ When forecasting with ARIMA models, first you will need to fit the model with th
 ```{r}
 
 # Model 9:  SARIMA on original data
+model9 <- auto.arima(ts_electricity_price[,1])
 
+model9_for <- forecast(model9, h=12)
+plot(model9_for)
 
 
 
 # Model 10:  ARIMA on deseasonal data
+
+model10 <- auto.arima(deseasonal_allsectors_price)
+
+model10_for <- forecast(model10, h=12)
+plot(model10_for)
 
 
 
