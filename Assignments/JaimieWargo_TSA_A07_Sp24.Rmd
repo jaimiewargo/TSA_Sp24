@@ -1,20 +1,20 @@
 ---
 title: "ENV 797 - Time Series Analysis for Energy and Environment Applications | Spring 2024"
 subtitle: "Assignment 7 - Due date 03/07/24"
-author: "Student Name"
+author: "Jaimie Wargo"
 output: pdf_document
 geometry: margin=2.54cm
 ---
 
 ## Directions
 
-You should open the .rmd file corresponding to this assignment on RStudio. The file is available on our class repository on Github. And to do so you will need to fork our repository and link it to your RStudio.  
+You should open the .rmd file corresponding to this assignment on RStudio. The file is available on our class repository on Github. And to do so you will need to fork our repository and link it to your RStudio.
 
-Once you have the file open on your local machine the first thing you will do is rename the file such that it includes your first and last name (e.g., "LuanaLima_TSA_A07_Sp24.Rmd"). Then change "Student Name" on line 4 with your name. 
+Once you have the file open on your local machine the first thing you will do is rename the file such that it includes your first and last name (e.g., "LuanaLima_TSA_A07_Sp24.Rmd"). Then change "Student Name" on line 4 with your name.
 
-Then you will start working through the assignment by  **creating code and output** that answer each question. Be sure to use this assignment document. Your report should contain the answer to each question and any plots/tables you obtained (when applicable).
+Then you will start working through the assignment by **creating code and output** that answer each question. Be sure to use this assignment document. Your report should contain the answer to each question and any plots/tables you obtained (when applicable).
 
-When you have completed the assignment, **Knit** the text and code into a single PDF file. Submit this pdf using Sakai. 
+When you have completed the assignment, **Knit** the text and code into a single PDF file. Submit this pdf using Sakai.
 
 Packages needed for this assignment: "forecast","tseries". Do not forget to load them before running your script, since they are NOT default packages.\\
 
@@ -22,20 +22,37 @@ Packages needed for this assignment: "forecast","tseries". Do not forget to load
 
 ```{r}
 #Load/install required package here
-
+library(tidyverse)
+library(cowplot)
+library(here)
+library(forecast)
+library(tseries)
+library(lubridate)
+library(Kendall)
 ```
 
 ## Importing and processing the data set
 
 Consider the data from the file "Net_generation_United_States_all_sectors_monthly.csv". The data corresponds to the monthly net generation from January 2001 to December 2020 by source and is provided by the US Energy Information and Administration. **You will work with the natural gas column only**.
 
-
 ### Q1
 
 Import the csv file and create a time series object for natural gas. Make you sure you specify the **start=** and **frequency=** arguments. Plot the time series over time, ACF and PACF.
 
 ```{r}
+raw_data <- read_csv(here('Data', 
+                          'Net_generation_United_States_all_sectors_monthly.csv'),
+                     skip = 4)
+raw_data$Month <- mdy(raw_data$Month)
 
+raw_data <- raw_data[order(raw_data$Month),]
+
+ts_gasgen <- ts(raw_data[,'natural gas thousand megawatthours'],
+                start=c(2001,1), frequency = 12)
+
+plot_grid(autoplot(ts_gasgen, y='Gas Generation (MWh)'), 
+          autoplot(Acf(ts_gasgen, plot=F)), 
+          autoplot(Pacf(ts_gasgen, plot=F)))
 ```
 
 ### Q2
@@ -43,8 +60,15 @@ Import the csv file and create a time series object for natural gas. Make you su
 Using the $decompose()$ or $stl()$ and the $seasadj()$ functions create a series without the seasonal component, i.e., a deseasonalized natural gas series. Plot the deseasonalized series over time and corresponding ACF and PACF. Compare with the plots obtained in Q1.
 
 ```{r}
+decompose_gasgen <- decompose(ts_gasgen)
+deseas_gasgen <- seasadj(decompose_gasgen)
 
+plot_grid(autoplot(deseas_gasgen, y='Gas Generation (MWh)'), 
+          autoplot(Acf(deseas_gasgen, plot=F)), 
+          autoplot(Pacf(deseas_gasgen, plot=F)))
 ```
+
+The ACF and PACF clearly have the seasonality removed, as the ACF has the wave pattern removed. The PACF also now only has significant lags at lag 1. The general time series also has more randomness now that the seasonal component is removed.
 
 ## Modeling the seasonally adjusted or deseasonalized series
 
@@ -53,28 +77,55 @@ Using the $decompose()$ or $stl()$ and the $seasadj()$ functions create a series
 Run the ADF test and Mann Kendall test on the deseasonalized data from Q2. Report and explain the results.
 
 ```{r}
+print("Results for ADF test")
+print(adf.test(deseas_gasgen,alternative = "stationary"))
 
+print("Results of Mann Kendall on average yearly series")
+print(summary(MannKendall(deseas_gasgen)))
 ```
+
+The ADF test reports a p-value less than 0.01, meaning that we accept the alternative hypothesis that the trend does not contain a unit root. Mann Kendall also has a p-value less than 0.01, so we accept the alternative hypothesis that this series follows a deterministic trend. These conclusions are evident when looking at the time series plot in Q2.
 
 ### Q4
 
 Using the plots from Q2 and test results from Q3 identify the ARIMA model parameters $p,d$ and $q$. Note that in this case because you removed the seasonal component prior to identifying the model you don't need to worry about seasonal component. Clearly state your criteria and any additional function in R you might use. DO NOT use the $auto.arima()$ function. You will be evaluated on ability to understand the ACF/PACF plots and interpret the test results.
 
 ```{r}
+ndiffs(deseas_gasgen)
 
+Model_610 <- Arima(deseas_gasgen,order=c(6,1,0),include.drift=TRUE, include.mean = TRUE)
+compare_aic <- data.frame(Model_610$aic)
+
+Model_110 <- Arima(deseas_gasgen,order=c(1,1,0),include.drift=TRUE, include.mean = TRUE)
+compare_aic <- data.frame(compare_aic, Model_110$aic)
+
+print(compare_aic)
 ```
+
+To do this, I am using the AIC method and trying different iterations of p, d, and q. The Mann Kendall test indicated lag order = 6, so I determined the AR component was 6. Additionally, because there is a trend present as interpreted from the MK, the series does need to be differenced. I checked to make sure d!=2 by using ndiffs, which returned d=1. The ACF chart showed an exponential decay, so I interpreted that there was not a moving average component. Visually, I would have determined a lag order of 1 for the auto-regressive order, but I tested this by comparing the AICs of model 110 and model 610 and the AIC was lower for 610.
 
 ### Q5
 
 Use `Arima()` from package "forecast" to fit an ARIMA model to your series considering the order estimated in Q4. You should allow constants in the model, i.e., `include.mean = TRUE` or `include.drift=TRUE`. **Print the coefficients** in your report. Hint: use the `cat()` r `print()` function to print.
 
 ```{r}
-
+#Already created this model in Q4
+print(Model_610$coef)
 ```
 
 ### Q6
 
 Now plot the residuals of the ARIMA fit from Q5 along with residuals ACF and PACF on the same window. You may use the $checkresiduals()$ function to automatically generate the three plots. Do the residual series look like a white noise series? Why?
+
+```{r}
+checkresiduals(Model_610, test=F)
+```
+
+```{r}
+autoplot(Pacf(Model_610$residuals, plot=F))
+```
+
+I would say these series look very much like a white noise series, as there is not a clear pattern that is being followed. This is because we removed seasonality from the series and accounted for the trend in the ARIMA.
 
 ## Modeling the original series (with seasonality)
 
@@ -83,18 +134,52 @@ Now plot the residuals of the ARIMA fit from Q5 along with residuals ACF and PAC
 Repeat Q4-Q6 for the original series (the complete series that has the seasonal component). Note that when you model the seasonal series, you need to specify the seasonal part of the ARIMA model as well, i.e., $P$, $D$ and $Q$.
 
 ```{r}
+p <- 6
 
+ndiffs(ts_gasgen)
+d <- 1
+q <- 0
+
+nsdiffs(ts_gasgen)
+
+D <- 1
+P <- 0
+Q <- 1
+s <- 12
 ```
 
+I kept the same values for the non-seasonal components, checking with ndiffs that non-seasonal differencing was still applicable. nsdiffs also indicated seasonal differencing was necessary for this series. From looking at the ACF and PACF in Q1, there is a clear pattern occurring every 12 lags, indicating that the s term is 12. We also see that the PACF lag spikes are negative, which suggests that we should include an SMA component. For this reason, I included Q=1 and P=0.
+
+```{r}
+sModel <- Arima(ts_gasgen, order=c(6,1,0), seasonal = c(0,1,1),
+                include.mean = TRUE, include.drift = TRUE)
+print(sModel)
+```
+
+```{r}
+print(sModel$coef)
+```
+
+```{r}
+checkresiduals(sModel$residuals, test=F)
+```
+
+```{r}
+autoplot(Pacf(sModel$residuals, plot=F))
+```
+
+These residuals also look like a white noise series.
 
 ### Q8
 
 Compare the residual series for Q7 and Q6. Can you tell which ARIMA model is better representing the Natural Gas Series? Is that a fair comparison? Explain your response.
 
 ```{r}
-
+plot_grid(autoplot(Model_610$residuals, ylim=c(-15000, 25000), y="Residuals", main="Deseasoned"), 
+          autoplot(sModel$residuals, ylim=c(-15000, 25000), y="Residual", main="Seasonal"))
 ```
 
+I can't really tell, but I feel like the seasonal model is slightly more centered around 0 overall. I'm not sure it's a fair comparison because it's harder to fit seasonal data than removing it at the top.
 
 ## Checking your model with the auto.arima()
 
@@ -105,15 +190,17 @@ Compare the residual series for Q7 and Q6. Can you tell which ARIMA model is bet
 Use the $auto.arima()$ command on the **deseasonalized series** to let R choose the model parameter for you. What's the order of the best ARIMA model? Does it match what you specified in Q4?
 
 ```{r}
-
+auto.arima(deseas_gasgen)
 ```
 
+The order for the best ARIMA model is (1,1,1). It does not match what I had– this model included the MA component and ended up with 10 points lower AIC. I also used the lag order given in the MK results, but that did not appear to be the best option. I am also confused because 110 was less optimal and 610, but 111 was more optimal.
 
 ### Q10
 
 Use the $auto.arima()$ command on the **original series** to let R choose the model parameters for you. Does it match what you specified in Q7?
 
 ```{r}
-
+auto.arima(ts_gasgen)
 ```
 
+This also does not match, since I used the values from before. I don't think I understand how d and D relate and when to use BOTH or ONE when working with SARIMA. I did model the seasonal components correctly using the helpful tips in the slides.
