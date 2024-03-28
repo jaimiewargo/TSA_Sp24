@@ -396,7 +396,7 @@ autoplot(ts_act_power_daily) +
 
 ```
 
-## Checking accuracy of the three models
+## Checking accuracy of the four models
 
 ```{r}
 
